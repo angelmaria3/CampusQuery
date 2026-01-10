@@ -1,73 +1,197 @@
-# Welcome to your Lovable project
+# CampusQuery – AI Powered College Helpdesk Chatbot
 
-## Project info
+## 📌 Overview
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+CampusQuery is an AI-powered college helpdesk chatbot designed to provide students with instant, accurate, and college-specific information. It centralizes commonly scattered information such as attendance rules, exam registration details, fee deadlines, department information, events, and condonation procedures into a single conversational interface.
 
-## How can I edit this code?
+The system uses a rule-based knowledge layer combined with AI (Gemini) to generate clear, human-like responses. Supabase Edge Functions are used to securely connect the frontend with the database and AI services.
 
-There are several ways of editing your application.
+---
 
-**Use Lovable**
+## 🎯 Objectives
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+* Reduce confusion caused by scattered notices and circulars
+* Minimize workload on administrative staff
+* Provide 24/7 access to academic and administrative information
+* Deliver fast, accurate, and student-friendly responses
 
-Changes made via Lovable will be committed automatically to this repo.
+---
 
-**Use your preferred IDE**
+## ✨ Key Features
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+* 💬 AI-powered chat interface
+* 📚 Attendance rules lookup (gender-wise)
+* 📝 Exam registration & fee details
+* 🎉 College events information
+* 🏢 Department details
+* 📄 Condonation procedure guidance
+* 🔐 Secure backend using Supabase Edge Functions
+* ⚡ Real-time responses
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+---
 
-Follow these steps:
+## 🛠️ Tech Stack
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Frontend
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+* React + TypeScript
+* Vite
+* Tailwind CSS
+* ShadCN UI Components
 
-# Step 3: Install the necessary dependencies.
-npm i
+### Backend
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+* Supabase (PostgreSQL)
+* Supabase Edge Functions (Deno)
+
+### AI
+
+* Google Gemini API
+
+### Tools & Platform
+
+* Supabase Dashboard
+* VS Code
+* GitHub
+
+---
+
+## 🗂️ Database Structure (Example Tables)
+
+* `attendance_rules`
+* `exam_registration_fees`
+* `events`
+* `department_info`
+* `condonation_rules`
+* `exam_rules`
+
+---
+
+## ⚙️ Setup Instructions
+
+### 1. Clone the Repository
+
+```bash
+git clone <your-repo-url>
+cd campusquery
 ```
 
-**Edit a file directly in GitHub**
+### 2. Install Dependencies
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+npm install
+# or
+bun install
+```
 
-**Use GitHub Codespaces**
+### 3. Configure Environment Variables
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Create a `.env` file in the root directory and add:
 
-## What technologies are used for this project?
+```env
+VITE_SUPABASE_URL="https://<your-project-ref>.supabase.co"
+VITE_SUPABASE_PUBLISHABLE_KEY="your_publishable_api_key"
+```
 
-This project is built with:
+> Get these from: Supabase Dashboard → Settings → API
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+---
 
-## How can I deploy this project?
+### 4. Supabase Edge Function Setup
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+In Supabase Dashboard:
 
-## Can I connect a custom domain to my Lovable project?
+1. Go to **Edge Functions**
+2. Create a function named: `rapid-processor`
+3. Add the provided `index.ts` code
+4. Add secrets in **Edge Functions → Secrets**:
 
-Yes, you can!
+   * `SUPABASE_URL`
+   * `SUPABASE_SERVICE_ROLE_KEY`
+   * `GEMINI_API_KEY`
+5. Click **Deploy**
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+---
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+### 5. Run the Project
+
+```bash
+npm run dev
+# or
+bun dev
+```
+
+Open in browser:
+
+```
+http://localhost:5173
+```
+
+---
+
+## 🔁 How It Works (Flow)
+
+1. User enters a question in the chat UI
+2. Frontend calls:
+
+   ```ts
+   supabase.functions.invoke('rapid-processor', { body: { query } })
+   ```
+3. Edge Function:
+
+   * Parses the query
+   * Fetches relevant data from Supabase tables
+   * Sends formatted data to Gemini API
+   * Returns AI response
+4. Frontend displays the response
+
+---
+
+## 🔐 Security Notes
+
+* Publishable key is used only in frontend
+* Service role key is stored securely in Edge Function secrets
+* RLS can be enabled for additional safety
+
+---
+
+## 🚀 Future Enhancements
+
+* Admin panel for managing rules and events
+* Multi-language support
+* Student authentication
+* Notification system
+* Voice input
+
+---
+
+## 👥 Team
+
+Developed by a team of 4 students as a hackathon project.
+
+---
+
+## 📄 License
+
+This project is for educational and hackathon purposes.
+
+---
+
+## ❤️ Acknowledgements
+
+* Supabase
+* Google Gemini API
+* Open-source community
+
+---
+
+## Screenshots and Demo video
+![Home Page](C:\Users\angel\OneDrive\Pictures\Screenshots\1.png)
+![Chat Page](C:\Users\angel\OneDrive\Pictures\Screenshots\2.png)
+![Categories Page](C:\Users\angel\OneDrive\Pictures\Screenshots\3.png)
+![About Page](C:\Users\angel\OneDrive\Pictures\Screenshots\4.png)
+![Help Page](C:\Users\angel\OneDrive\Pictures\Screenshots\5.png)
+
+
+
+> *CampusQuery – One stop solution for all your campus queries* 🎓
