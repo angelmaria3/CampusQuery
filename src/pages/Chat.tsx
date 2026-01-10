@@ -49,7 +49,7 @@ const Chat = () => {
     setIsTyping(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('campus-chat', {
+      const { data, error } = await supabase.functions.invoke('rapid-processor', {
         body: { query: userQuery }
       });
 
