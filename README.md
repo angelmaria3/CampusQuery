@@ -97,23 +97,36 @@ VITE_SUPABASE_PUBLISHABLE_KEY="your_publishable_api_key"
 
 ---
 
-### 4. Supabase Edge Function Setup
+### 4. Database Setup & Seeding
 
-In Supabase Dashboard:
+Before running the application, you need to create the required tables in your Supabase project.
 
-1. Go to **Edge Functions**
-2. Create a function named: `rapid-processor`
-3. Add the provided `index.ts` code
-4. Add secrets in **Edge Functions → Secrets**:
-
-   * `SUPABASE_URL`
-   * `SUPABASE_SERVICE_ROLE_KEY`
-   * `GEMINI_API_KEY`
-5. Click **Deploy**
+1. In the Supabase Dashboard, navigate to the **SQL Editor**.
+2. Click **New Query**.
+3. Open the file [supabase/seed.sql](file:///d:/Projects/CampusQuery/supabase/seed.sql) in this repository and copy its contents.
+4. Paste the SQL statements into the SQL Editor and click **Run**.
+5. Verify that all 6 tables (`attendance_rules`, `exam_registration_fees`, `events`, `department_info`, `condonation_rules`, `exam_rules`) have been successfully created and populated with sample data.
 
 ---
 
-### 5. Run the Project
+### 5. Supabase Edge Function Setup
+
+The edge function handles queries and routes data to Gemini. To deploy:
+
+1. Deploy the local function using Supabase CLI:
+   ```bash
+   supabase functions deploy campus-chat
+   ```
+   *(Or create a function named `campus-chat` in the Supabase Dashboard and paste the code from `supabase/functions/campus-chat/index.ts`)*
+2. In the Supabase Dashboard, go to **Edge Functions** -> **campus-chat** -> **Settings / Secrets**.
+3. Add the following required environment secrets:
+   * `SUPABASE_URL`
+   * `SUPABASE_SERVICE_ROLE_KEY`
+   * `GEMINI_API_KEY`
+
+---
+
+### 6. Run the Project
 
 ```bash
 npm run dev
@@ -131,19 +144,19 @@ http://localhost:5173
 
 ## 🔁 How It Works (Flow)
 
-1. User enters a question in the chat UI
+1. User enters a question in the chat UI or clicks a suggestion pill
 2. Frontend calls:
 
    ```ts
-   supabase.functions.invoke('rapid-processor', { body: { query } })
+   supabase.functions.invoke('campus-chat', { body: { query } })
    ```
 3. Edge Function:
 
    * Parses the query
-   * Fetches relevant data from Supabase tables
-   * Sends formatted data to Gemini API
-   * Returns AI response
-4. Frontend displays the response
+   * Fetches relevant data from the respective Supabase database tables
+   * Sends structured context to the Gemini API
+   * Returns a polished conversational response
+4. Frontend displays the AI-powered response
 
 ---
 

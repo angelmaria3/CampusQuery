@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js";
 
@@ -12,7 +13,7 @@ const geminiKey = Deno.env.get("GEMINI_API_KEY")!;
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-serve(async (req) => {
+serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -26,7 +27,7 @@ serve(async (req) => {
     if (lower.includes("attendance")) {
       const { data } = await supabase.from("attendance_rules").select("*");
 
-      dataText = data?.map(a =>
+      dataText = data?.map((a: any) =>
         `${a.gender} students: Minimum ${a.min_percentage}% attendance required.\n${a.description}`
       ).join("\n\n") || "No attendance rules found.";
     }
@@ -35,7 +36,7 @@ serve(async (req) => {
     else if (lower.includes("exam") && (lower.includes("fee") || lower.includes("registration"))) {
       const { data } = await supabase.from("exam_registration_fees").select("*");
 
-      dataText = data?.map(d =>
+      dataText = data?.map((d: any) =>
         `📘 ${d.exam_name}\nDeadline: ${d.registration_deadline}\nFee: ₹${d.fee_amount}\nLate Fee: ₹${d.late_fee_amount}`
       ).join("\n\n") || "No exam registration data found.";
     }
@@ -44,7 +45,7 @@ serve(async (req) => {
     else if (lower.includes("event")) {
       const { data } = await supabase.from("events").select("*");
 
-      dataText = data?.map(e =>
+      dataText = data?.map((e: any) =>
         `🎉 ${e.event_name}\nDate: ${e.event_date}\nVenue: ${e.venue}`
       ).join("\n\n") || "No events found.";
     }
@@ -53,7 +54,7 @@ serve(async (req) => {
     else if (lower.includes("department")) {
       const { data } = await supabase.from("department_info").select("*");
 
-      dataText = data?.map(d =>
+      dataText = data?.map((d: any) =>
         `${d.department_name}\nHOD: ${d.hod_name}\n${d.description}`
       ).join("\n\n") || "No department info found.";
     }
@@ -62,7 +63,7 @@ serve(async (req) => {
     else if (lower.includes("condonation")) {
       const { data } = await supabase.from("condonation_rules").select("*");
 
-      dataText = data?.map(c =>
+      dataText = data?.map((c: any) =>
         `Eligibility: ${c.eligibility}\nProcedure: ${c.procedure}\nFee: ₹${c.fee_amount}`
       ).join("\n\n") || "No condonation rules found.";
     }
@@ -71,7 +72,7 @@ serve(async (req) => {
     else if (lower.includes("rule")) {
       const { data } = await supabase.from("exam_rules").select("*");
 
-      dataText = data?.map(r =>
+      dataText = data?.map((r: any) =>
         `${r.rule_title}: ${r.rule_description}`
       ).join("\n\n") || "No exam rules found.";
     }
@@ -81,21 +82,36 @@ serve(async (req) => {
     }
 
     // ===== GEMINI =====
-    const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{ text: `Answer the student clearly using this data:\n${dataText}` }]
-          }]
-        })
-      }
-    );
+    let finalText = dataText;
+    try {
+      const geminiResponse = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{ text: `Answer the student clearly using this data:\n${dataText}` }]
+            }]
+          })
+        }
+      );
 
-    const geminiData = await geminiResponse.json();
-    const finalText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || dataText;
+      if (geminiResponse.ok) {
+        const geminiData = await geminiResponse.json();
+        const aiText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (aiText) {
+          finalText = aiText;
+        } else {
+          console.warn("No text candidates found in Gemini response.");
+        }
+      } else {
+        const errorText = await geminiResponse.text();
+        console.error(`Gemini API error (Status ${geminiResponse.status}): ${errorText}`);
+      }
+    } catch (apiError) {
+      console.error("Gemini connection error:", apiError);
+    }
 
     return new Response(
       JSON.stringify({ response: finalText }),
