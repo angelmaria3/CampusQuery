@@ -68,17 +68,81 @@ serve(async (req: Request) => {
       ).join("\n\n") || "No condonation rules found.";
     }
 
-    // ===== EXAM RULES =====
-    else if (lower.includes("rule")) {
-      const { data } = await supabase.from("exam_rules").select("*");
+    // ===== MINOR SPECIALIZED DOMAINS =====
+    else if (lower.includes("minor") && (lower.includes("domain") || lower.includes("specialized") || lower.includes("option") || lower.includes("subject") || lower.includes("what minors"))) {
+      const { data } = await supabase.from("specialized_minor_domains").select("*");
+      dataText = "Here are the specialized Minor domains offered under the 2024 scheme:\n\n" + 
+        data?.map((d: any) => `• **${d.domain_name}**: ${d.description || "No description available."}`).join("\n") || "No specialized minor domains found.";
+    }
 
-      dataText = data?.map((r: any) =>
-        `${r.rule_title}: ${r.rule_description}`
-      ).join("\n\n") || "No exam rules found.";
+    // ===== MINOR CURRICULUM & COURSE STRUCTURE =====
+    else if (lower.includes("minor") && (lower.includes("curriculum") || lower.includes("structure") || lower.includes("semester") || lower.includes("credit") || lower.includes("course") || lower.includes("code"))) {
+      const { data } = await supabase.from("minor_curriculum_courses").select("*");
+      dataText = "KTU 2024 B.Tech Minor Course Structure and Credit Distribution:\n\n" +
+        data?.map((c: any) => 
+          `📊 **Semester ${c.semester}**:\n` +
+          `  - Course Pattern: \`${c.course_code_pattern}\`\n` +
+          `  - Credits: ${c.credits} (L-T-P: ${c.lecture_structure})\n` +
+          `  - Weekly Hours: ${c.hours_per_week} hrs (Self-Study: ${c.self_study_hours} hrs)\n` +
+          `  - Marks: CIE ${c.cia_marks} / ESE ${c.ese_marks}\n` +
+          `  - Detail: ${c.description}`
+        ).join("\n\n") || "No minor curriculum courses found.";
+    }
+
+    // ===== HONOURS CURRICULUM & COURSE STRUCTURE =====
+    else if (lower.includes("honour") && (lower.includes("curriculum") || lower.includes("structure") || lower.includes("semester") || lower.includes("credit") || lower.includes("course") || lower.includes("code"))) {
+      const { data } = await supabase.from("honours_curriculum_courses").select("*");
+      dataText = "KTU 2024 B.Tech Honours Course Structure and Credit Distribution:\n\n" +
+        data?.map((c: any) => 
+          `📊 **Semester ${c.semester}**:\n` +
+          `  - Course Pattern: \`${c.course_code_pattern}\`\n` +
+          `  - Credits: ${c.credits} (L-T-P: ${c.lecture_structure})\n` +
+          `  - Weekly Hours: ${c.hours_per_week} hrs (Self-Study: ${c.self_study_hours} hrs)\n` +
+          `  - Marks: CIE ${c.cia_marks} / ESE ${c.ese_marks}\n` +
+          `  - Detail: ${c.description}`
+        ).join("\n\n") || "No honours curriculum courses found.";
+    }
+
+    // ===== GENERAL REGULATIONS & ACADEMIC RULES =====
+    else if (
+      lower.includes("rule") || 
+      lower.includes("regulation") || 
+      lower.includes("honour") || 
+      lower.includes("minor") || 
+      lower.includes("cgpa") || 
+      lower.includes("sgpa") ||
+      lower.includes("transfer") || 
+      lower.includes("mooc") || 
+      lower.includes("internship") || 
+      lower.includes("grace") ||
+      lower.includes("absence") ||
+      lower.includes("challenge") ||
+      lower.includes("assessment") ||
+      lower.includes("migration")
+    ) {
+      const { data } = await supabase.from("academic_regulations").select("*");
+      
+      const keywords = ["honour", "minor", "cgpa", "sgpa", "transfer", "mooc", "internship", "grace", "absence", "challenge", "assessment", "migration", "duration", "mentoring", "pta", "attendance", "admission", "visit", "ombuds"];
+      const matchedKeywords = keywords.filter(kw => lower.includes(kw));
+      
+      let filtered = data || [];
+      if (matchedKeywords.length > 0) {
+        filtered = filtered.filter((r: any) => {
+          const content = `${r.category_name} ${r.rule_title} ${r.rule_description}`.toLowerCase();
+          return matchedKeywords.some(kw => content.includes(kw));
+        });
+      }
+      
+      // Limit to 10 rules to avoid hitting context token limit
+      filtered = filtered.slice(0, 10);
+      
+      dataText = filtered.map((r: any) =>
+        `📍 [Section ${r.category_number}: ${r.category_name}] ${r.rule_code || ""} ${r.rule_title}: ${r.rule_description}`
+      ).join("\n\n") || "No matching academic regulations found.";
     }
 
     else {
-      dataText = "Please ask about attendance, exam registration, fees, events, departments, or condonation.";
+      dataText = "Please ask about attendance, exam registration, fees, events, departments, condonation, or general regulations like Honours, Minors, SGPA/CGPA, transfers, breaks of study, and internships.";
     }
 
     // ===== GEMINI =====
