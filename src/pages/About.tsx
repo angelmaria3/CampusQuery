@@ -14,7 +14,7 @@ const About = () => {
   const techStack = [
     "React with TypeScript",
     "Tailwind CSS",
-    "Lovable Cloud Backend",
+    "Supabase Backend",
     "Edge Functions for AI",
     "Natural Language Processing"
   ];
